@@ -1,0 +1,152 @@
+version: '3.8'
+
+# ================================================================
+# EvoNexus Stack — Kem Setup
+# ================================================================
+#
+# Deploy via Coolify:
+# 1. Copy this entire file
+# 2. Paste in Coolify → Services → Compose
+# 3. Set ONE variable: DOMAIN (your domain name)
+# 4. Click Deploy
+#
+# That's it! Everything else is preconfigured.
+#
+# ================================================================
+
+services:
+  evonexus_dashboard:
+    image: evoapicloud/evo-nexus-dashboard:latest
+    container_name: evonexus_dashboard
+    restart: unless-stopped
+    environment:
+      TZ: America/Sao_Paulo
+      EVONEXUS_PORT: 8080
+      TERMINAL_SERVER_PORT: 32352
+      NGROK_URL: https://${DOMAIN}/social-auth
+      EVONEXUS_SECRET_KEY: HVwxeWjBxn0VWKQnVNFCbyf4DyHH5WkclXyI4g9HpG0
+      DASHBOARD_API_TOKEN: EwB23pNygH6JJinQY3YltVkVgHE5msqcZM_g5RbXYmB
+      CORS_ALLOWED_ORIGINS: https://${DOMAIN}
+      EVONEXUS_API_URL: http://evonexus_dashboard:8080
+
+    volumes:
+      - evonexus_config:/workspace/config
+      - evonexus_workspace:/workspace/workspace
+      - evonexus_dashboard_data:/dashboard/data
+      - evonexus_memory:/workspace/memory
+      - evonexus_logs:/workspace/ADWs/logs
+      - evonexus_routines:/workspace/ADWs/routines
+      - evonexus_agents:/workspace/.claude/agents
+      - evonexus_skills:/workspace/.claude/skills
+      - evonexus_commands:/workspace/.claude/commands
+      - evonexus_templates:/workspace/.claude/templates
+      - evonexus_rules:/workspace/.claude/rules
+      - evonexus_hooks:/workspace/.claude/hooks
+      - evonexus_agent_memory:/workspace/.claude/agent-memory
+      - evonexus_claude_auth:/.claude-code-web/auth
+      - evonexus_codex_auth:/.codex-auth
+
+    ports:
+      - "8080:8080"
+      - "32352:32352"
+
+    networks:
+      - coolify
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.evonexus-dashboard.rule: "Host(`${DOMAIN}`)"
+      traefik.http.routers.evonexus-dashboard.entrypoints: "websecure"
+      traefik.http.routers.evonexus-dashboard.tls.certresolver: "letsencrypt"
+      traefik.http.services.evonexus-dashboard.loadbalancer.server.port: "8080"
+      traefik.http.routers.evonexus-dashboard.middlewares: "gzip"
+      traefik.http.middlewares.gzip.compress: "true"
+
+  evonexus_social_auth:
+    image: evoapicloud/evo-nexus-dashboard:latest
+    container_name: evonexus_social_auth
+    restart: unless-stopped
+    environment:
+      TZ: America/Sao_Paulo
+      OAUTH_MODE: "true"
+      NGROK_URL: https://${DOMAIN}/social-auth
+
+    ports:
+      - "8765:8765"
+
+    networks:
+      - coolify
+
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.evonexus-oauth.rule: "Host(`${DOMAIN}`) && PathPrefix(`/social-auth`)"
+      traefik.http.routers.evonexus-oauth.entrypoints: "websecure"
+      traefik.http.routers.evonexus-oauth.tls.certresolver: "letsencrypt"
+      traefik.http.services.evonexus-oauth.loadbalancer.server.port: "8765"
+
+  evonexus_telegram:
+    image: evoapicloud/evo-nexus-dashboard:latest
+    container_name: evonexus_telegram
+    restart: unless-stopped
+    environment:
+      TZ: America/Sao_Paulo
+      TELEGRAM_MODE: "true"
+
+    ports:
+      - "8766:8766"
+
+    networks:
+      - coolify
+
+  evonexus_scheduler:
+    image: evoapicloud/evo-nexus-runtime:latest
+    container_name: evonexus_scheduler
+    restart: unless-stopped
+    environment:
+      TZ: America/Sao_Paulo
+      SCHEDULER_MODE: "true"
+      EVONEXUS_API_URL: http://evonexus_dashboard:8080
+
+    volumes:
+      - evonexus_config:/workspace/config
+      - evonexus_workspace:/workspace/workspace
+      - evonexus_memory:/workspace/memory
+      - evonexus_logs:/workspace/ADWs/logs
+      - evonexus_routines:/workspace/ADWs/routines
+      - evonexus_agents:/workspace/.claude/agents
+      - evonexus_skills:/workspace/.claude/skills
+      - evonexus_commands:/workspace/.claude/commands
+      - evonexus_templates:/workspace/.claude/templates
+      - evonexus_rules:/workspace/.claude/rules
+      - evonexus_agent_memory:/workspace/.claude/agent-memory
+
+    networks:
+      - coolify
+
+volumes:
+  evonexus_config:
+  evonexus_workspace:
+  evonexus_dashboard_data:
+  evonexus_memory:
+  evonexus_logs:
+  evonexus_routines:
+  evonexus_agents:
+  evonexus_skills:
+  evonexus_commands:
+  evonexus_templates:
+  evonexus_rules:
+  evonexus_hooks:
+  evonexus_agent_memory:
+  evonexus_claude_auth:
+  evonexus_codex_auth:
+
+networks:
+  coolify:
+    external: true
