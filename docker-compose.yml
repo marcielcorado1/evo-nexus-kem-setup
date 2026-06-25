@@ -1,82 +1,96 @@
 version: '3.8'
 
 # ================================================================
-# EvoNexus Stack — Kem Setup
+# EvoNexus Stack — Kem Setup para Alunos
 # ================================================================
 #
-# Deploy via Coolify:
-# 1. Copie este arquivo inteiro
-# 2. Cole no Coolify → Services → Compose
-# 3. Defina UMA variável: DOMAIN (seu domínio)
-# 4. Clique em Deploy
+# Como fazer o deploy no Coolify (Web UI):
 #
-# Pronto! Tudo mais já está pré-configurado.
+#   PASSO 1: Copie este arquivo inteiro
+#   PASSO 2: Coolify → Projeto → + Novo Recurso → Docker Compose
+#   PASSO 3: Cole o conteúdo no editor
+#   PASSO 4: Na aba "Environment Variables", adicione:
+#              DOMAIN=seu.dominio.com.br
+#   PASSO 5: Na aba "Domains" do serviço evonexus_dashboard,
+#              adicione também: seu.dominio.com.br
+#   PASSO 6: Clique em Deploy
+#
+# IMPORTANTE: O domínio precisa ser configurado em DOIS lugares:
+#   - Environment Variables (para a aplicação saber a URL)
+#   - Domains do serviço (para o Traefik rotear o tráfego)
+#
+# Após o deploy, acesse o dashboard e configure sua ANTHROPIC_API_KEY
+# nas configurações para ativar o scheduler e o bot Telegram.
 #
 # ================================================================
 
 services:
+
+  # ─── Dashboard Principal ──────────────────────────────────────
   evonexus_dashboard:
     image: evoapicloud/evo-nexus-dashboard:latest
     container_name: evonexus_dashboard
     restart: unless-stopped
+
     environment:
-      # Fuso Horário (América/São Paulo)
+      # Fuso Horário
       TZ: America/Sao_Paulo
 
-      # Porta do Dashboard (interna)
+      # Porta interna do Dashboard
       EVONEXUS_PORT: 8080
 
-      # Porta do Terminal Server (interna)
+      # Porta interna do Terminal Server
       TERMINAL_SERVER_PORT: 32352
 
       # URL pública para redirecionamento OAuth (autenticação social)
       NGROK_URL: https://${DOMAIN}/social-auth
 
-      # Chave secreta da sessão (segurança)
+      # Chave secreta da sessão Flask
       EVONEXUS_SECRET_KEY: HVwxeWjBxn0VWKQnVNFCbyf4DyHH5WkclXyI4g9HpG0
 
-      # Token da API do Dashboard (para agentes acessarem)
+      # Token da API do Dashboard (usado pelos agentes internos)
       DASHBOARD_API_TOKEN: EwB23pNygH6JJinQY3YltVkVgHE5msqcZM_g5RbXYmB
 
-      # Origens CORS permitidas (controla quem pode acessar a API)
+      # Origens permitidas para CORS
       CORS_ALLOWED_ORIGINS: https://${DOMAIN}
 
-      # URL interna da API (nome do serviço Docker)
+      # URL interna da API (comunicação entre containers via nome do serviço)
       EVONEXUS_API_URL: http://evonexus_dashboard:8080
 
     volumes:
       # ═══════════════════════════════════════════════════════════
-      # 15 volumes persistentes — seus dados sobrevivem a restarts
+      # 15 volumes persistentes — dados sobrevivem a restarts e
+      # atualizações de imagem
       # ═══════════════════════════════════════════════════════════
 
-      # Configuração da stack
+      # Configurações da stack (ANTHROPIC_API_KEY, integrações, etc.)
       - evonexus_config:/workspace/config
 
-      # Workspace — arquivos de trabalho dos agentes
+      # Workspace dos agentes (arquivos gerados, planos, etc.)
       - evonexus_workspace:/workspace/workspace
 
-      # Banco de dados do Dashboard
+      # Banco de dados SQLite do Dashboard
       - evonexus_dashboard_data:/dashboard/data
 
-      # Memória dos agentes (persistem entre sessões)
+      # Memória de longo prazo dos agentes
       - evonexus_memory:/workspace/memory
 
-      # Logs de execução
+      # Logs de execução das rotinas
       - evonexus_logs:/workspace/ADWs/logs
 
       # Scripts de rotinas customizadas
       - evonexus_routines:/workspace/ADWs/routines
 
-      # Definições dos 38 agentes
+      # Definições dos 38 agentes (Clawdia, Flux, Atlas, etc.)
       - evonexus_agents:/workspace/.claude/agents
 
-      # 175+ skills (automações)
+      # 175+ skills de automação
       - evonexus_skills:/workspace/.claude/skills
 
-      # Comandos slash (como /clawdia, /flux, etc.)
+      # Comandos slash (/clawdia, /flux, /oracle, etc.)
       - evonexus_commands:/workspace/.claude/commands
 
-      # Templates HTML/Markdown
+      # Templates HTML e Markdown para relatórios
       - evonexus_templates:/workspace/.claude/templates
 
       # Regras de comportamento dos agentes
@@ -85,23 +99,22 @@ services:
       # Git hooks customizados
       - evonexus_hooks:/workspace/.claude/hooks
 
-      # Memória privada de cada agente
+      # Memória privada de cada agente (persiste entre sessões)
       - evonexus_agent_memory:/workspace/.claude/agent-memory
 
-      # Autenticação Claude Code
+      # Credenciais do Claude Code Web
       - evonexus_claude_auth:/.claude-code-web/auth
 
-      # Autenticação Codex
+      # Credenciais do Codex
       - evonexus_codex_auth:/.codex-auth
 
-    ports:
-      # Dashboard Web UI + API
-      - "8080:8080"
-      # Terminal Server
-      - "32352:32352"
+    # Não expõe porta externamente — o Coolify/Traefik roteia via domínio
+    # A porta 8080 é usada internamente entre containers
+    expose:
+      - "8080"
+      - "32352"
 
     networks:
-      # Rede externa criada pelo Coolify (mesmo nome da stack)
       - coolify
 
     healthcheck:
@@ -112,66 +125,64 @@ services:
       start_period: 40s
 
     labels:
-      # Configuração automática do Traefik (roteamento)
+      # Habilita o Traefik para este serviço
       traefik.enable: "true"
-      traefik.http.routers.evonexus-dashboard.rule: "Host(`${DOMAIN}`)"
-      traefik.http.routers.evonexus-dashboard.entrypoints: "websecure"
-      traefik.http.routers.evonexus-dashboard.tls.certresolver: "letsencrypt"
-      traefik.http.services.evonexus-dashboard.loadbalancer.server.port: "8080"
-      traefik.http.routers.evonexus-dashboard.middlewares: "gzip"
-      traefik.http.middlewares.gzip.compress: "true"
+      # Define qual rede o Traefik usa para descobrir o serviço
+      traefik.docker.network: "coolify"
+      # NOTA: o domínio é configurado via aba "Domains" no Coolify
+      # O Coolify gera automaticamente as regras de roteamento corretas
 
+
+  # ─── Social Auth (OAuth para Instagram, YouTube, LinkedIn) ────
   evonexus_social_auth:
     image: evoapicloud/evo-nexus-dashboard:latest
     container_name: evonexus_social_auth
     restart: unless-stopped
+
     environment:
       TZ: America/Sao_Paulo
       OAUTH_MODE: "true"
       NGROK_URL: https://${DOMAIN}/social-auth
 
-    ports:
-      # Servidor OAuth (Instagram, YouTube, LinkedIn)
-      - "8765:8765"
+    expose:
+      - "8765"
 
     networks:
       - coolify
 
-    labels:
-      # Roteamento para OAuth
-      traefik.enable: "true"
-      traefik.http.routers.evonexus-oauth.rule: "Host(`${DOMAIN}`) && PathPrefix(`/social-auth`)"
-      traefik.http.routers.evonexus-oauth.entrypoints: "websecure"
-      traefik.http.routers.evonexus-oauth.tls.certresolver: "letsencrypt"
-      traefik.http.services.evonexus-oauth.loadbalancer.server.port: "8765"
 
+  # ─── Bot Telegram ─────────────────────────────────────────────
   evonexus_telegram:
     image: evoapicloud/evo-nexus-dashboard:latest
     container_name: evonexus_telegram
     restart: unless-stopped
+
     environment:
       TZ: America/Sao_Paulo
       TELEGRAM_MODE: "true"
 
-    ports:
-      # Bot Telegram
-      - "8766:8766"
+    expose:
+      - "8766"
 
     networks:
       - coolify
 
+
+  # ─── Scheduler de Rotinas ─────────────────────────────────────
   evonexus_scheduler:
     image: evoapicloud/evo-nexus-runtime:latest
     container_name: evonexus_scheduler
     restart: unless-stopped
+
     environment:
       TZ: America/Sao_Paulo
       SCHEDULER_MODE: "true"
-      # URL interna para acessar o Dashboard
+      # URL interna para comunicação com o Dashboard
       EVONEXUS_API_URL: http://evonexus_dashboard:8080
+      DASHBOARD_API_TOKEN: EwB23pNygH6JJinQY3YltVkVgHE5msqcZM_g5RbXYmB
 
     volumes:
-      # Scheduler precisa de acesso aos arquivos de trabalho
+      # O Scheduler precisa acessar os mesmos arquivos do Dashboard
       - evonexus_config:/workspace/config
       - evonexus_workspace:/workspace/workspace
       - evonexus_memory:/workspace/memory
@@ -187,14 +198,20 @@ services:
     networks:
       - coolify
 
+    # Aguarda o Dashboard estar saudável antes de iniciar
+    depends_on:
+      evonexus_dashboard:
+        condition: service_healthy
+
+
 # ═══════════════════════════════════════════════════════════════════
 # VOLUMES PERSISTENTES
 # ═══════════════════════════════════════════════════════════════════
-# Todos os volumes abaixo são persistidos no Docker host
+# Todos os dados são mantidos em volumes Docker nomeados.
 # Seus dados sobrevivem a:
-#   - Restart do container
-#   - Atualização de imagem
-#   - Redeployment da stack
+#   - Reinicializações do container
+#   - Atualizações de imagem (docker pull + redeploy)
+#   - Redeployments da stack no Coolify
 # ═══════════════════════════════════════════════════════════════════
 
 volumes:
@@ -214,13 +231,13 @@ volumes:
   evonexus_claude_auth:
   evonexus_codex_auth:
 
+
 # ═══════════════════════════════════════════════════════════════════
 # REDES
 # ═══════════════════════════════════════════════════════════════════
 
 networks:
   coolify:
-    # Rede externa criada pelo Coolify
-    # Certifique-se de que a rede existe:
-    # docker network create coolify
+    # Rede externa gerenciada pelo Coolify (necessária para o Traefik)
+    # O Coolify cria essa rede automaticamente na instalação
     external: true
