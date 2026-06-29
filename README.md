@@ -41,6 +41,30 @@ https://nexcore.seudominio.com.br
 
 ---
 
+## 🔧 Pós-Deploy — Verificar Terminal
+
+Após o deploy, abra o Terminal integrado do NEXCORE e execute:
+
+```bash
+claude --version
+```
+
+**Resultado esperado:** retorna a versão do Claude Code (ex: `1.x.x`). Terminal funcionando, nenhuma ação necessária.
+
+**Se o terminal travar ou recusar a execução** (erro relacionado a permissões root no Docker), rode o comando abaixo — ele aplica o fix diretamente no container, sem reiniciar nada:
+
+```bash
+BRIDGE=$(find / -name "claude-bridge.js" 2>/dev/null | head -1) && \
+sed -i 's/dangerouslySkipPermissions ? {/(dangerouslySkipPermissions || process.env.CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS === ''1'') ? {/g' "$BRIDGE" && \
+echo "✅ Fix aplicado em: $BRIDGE"
+```
+
+Abra uma nova sessão no Terminal — o fix entra em vigor imediatamente.
+
+> 💡 **Contexto**: o NEXCORE roda como root dentro do Docker. Versões mais recentes da imagem já incluem este fix nativamente — o comando acima é necessário apenas se o terminal não responder após o deploy.
+
+---
+
 ## 📦 O Que Você Ganha
 
 | Item | Quantidade |
@@ -73,6 +97,7 @@ Quando houver nova versão do NEXCORE:
 | Dashboard abre mas IA não responde | Configure `ANTHROPIC_API_KEY` na aba Environment Variables |
 | Scheduler em loop de restart | Normal até configurar a `ANTHROPIC_API_KEY` |
 | Erro 4 ocorrências de domínio | Verifique se substituiu `nexcore.seudominio.com.br` nos 4 lugares |
+| Terminal trava (erro root/Docker) | Execute o comando de fix na seção "Pós-Deploy — Verificar Terminal" |
 
 ---
 
