@@ -1,17 +1,17 @@
 # ================================================================
-# EvoNexus Stack — TESTE / nexcore2
+# NEXCORE Stack — TESTE / nexcore2
 # ================================================================
 # Stack paralela para testes na mesma VPS.
-# Containers, volumes e routers Traefik usam prefixo "evonexus2_"
-# para nao conflitar com a stack principal (evonexus_*).
+# Containers, volumes e routers Traefik usam prefixo "nexcore2_"
+# para nao conflitar com a stack principal (nexcore_*).
 #
 # Dominio: nexcore2.kemsolucoes.com.br
 # ================================================================
 
 services:
-  evonexus2_dashboard:
+  nexcore2_dashboard:
     image: 'evoapicloud/evo-nexus-dashboard:latest'
-    container_name: evonexus2_dashboard
+    container_name: nexcore2_dashboard
     restart: unless-stopped
     environment:
       - TZ=America/Sao_Paulo
@@ -20,22 +20,22 @@ services:
       - 'FORWARDED_ALLOW_IPS=*'
       - CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS=1
     volumes:
-      - 'evonexus2_config:/workspace/config'
-      - 'evonexus2_workspace:/workspace/workspace'
-      - 'evonexus2_dashboard_data:/workspace/dashboard/data'
-      - 'evonexus2_memory:/workspace/memory'
-      - 'evonexus2_adw_logs:/workspace/ADWs/logs'
-      - 'evonexus2_adw_custom:/workspace/ADWs/routines/custom'
-      - 'evonexus2_agents_custom:/workspace/.claude/agents'
-      - 'evonexus2_skills_custom:/workspace/.claude/skills'
-      - 'evonexus2_commands_custom:/workspace/.claude/commands'
-      - 'evonexus2_templates:/workspace/.claude/templates'
-      - 'evonexus2_rules:/workspace/.claude/rules'
-      - 'evonexus2_hooks:/workspace/.claude/hooks'
-      - 'evonexus2_agent_memory:/workspace/.claude/agent-memory'
-      - 'evonexus2_claude_auth:/root/.claude'
-      - 'evonexus2_codex_auth:/root/.codex'
-      - 'evonexus2_terminal_sessions:/root/.claude-code-web'
+      - 'nexcore2_config:/workspace/config'
+      - 'nexcore2_workspace:/workspace/workspace'
+      - 'nexcore2_dashboard_data:/workspace/dashboard/data'
+      - 'nexcore2_memory:/workspace/memory'
+      - 'nexcore2_adw_logs:/workspace/ADWs/logs'
+      - 'nexcore2_adw_custom:/workspace/ADWs/routines/custom'
+      - 'nexcore2_agents_custom:/workspace/.claude/agents'
+      - 'nexcore2_skills_custom:/workspace/.claude/skills'
+      - 'nexcore2_commands_custom:/workspace/.claude/commands'
+      - 'nexcore2_templates:/workspace/.claude/templates'
+      - 'nexcore2_rules:/workspace/.claude/rules'
+      - 'nexcore2_hooks:/workspace/.claude/hooks'
+      - 'nexcore2_agent_memory:/workspace/.claude/agent-memory'
+      - 'nexcore2_claude_auth:/root/.claude'
+      - 'nexcore2_codex_auth:/root/.codex'
+      - 'nexcore2_terminal_sessions:/root/.claude-code-web'
     networks:
       - coolify
     mem_limit: 8192m
@@ -51,28 +51,28 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=coolify
-      - traefik.http.routers.evonexus2_dashboard.rule=Host(`nexcore2.kemsolucoes.com.br`)
-      - traefik.http.routers.evonexus2_dashboard.entrypoints=https
-      - traefik.http.routers.evonexus2_dashboard.priority=1
-      - traefik.http.routers.evonexus2_dashboard.tls=true
-      - traefik.http.routers.evonexus2_dashboard.tls.certresolver=letsencrypt
-      - traefik.http.routers.evonexus2_dashboard.service=evonexus2_dashboard
-      - traefik.http.services.evonexus2_dashboard.loadbalancer.server.port=8080
-      - traefik.http.services.evonexus2_dashboard.loadbalancer.passHostHeader=true
-      - 'traefik.http.routers.evonexus2_terminal.rule=Host(`nexcore2.kemsolucoes.com.br`) && PathPrefix(`/terminal`)'
-      - traefik.http.routers.evonexus2_terminal.entrypoints=https
-      - traefik.http.routers.evonexus2_terminal.priority=10
-      - traefik.http.routers.evonexus2_terminal.tls=true
-      - traefik.http.routers.evonexus2_terminal.tls.certresolver=letsencrypt
-      - traefik.http.routers.evonexus2_terminal.service=evonexus2_terminal
-      - traefik.http.routers.evonexus2_terminal.middlewares=evonexus2_terminal_strip
-      - traefik.http.middlewares.evonexus2_terminal_strip.stripprefix.prefixes=/terminal
-      - traefik.http.services.evonexus2_terminal.loadbalancer.server.port=32352
-      - traefik.http.services.evonexus2_terminal.loadbalancer.passHostHeader=true
+      - traefik.http.routers.nexcore2_dashboard.rule=Host(`nexcore2.kemsolucoes.com.br`)
+      - traefik.http.routers.nexcore2_dashboard.entrypoints=https
+      - traefik.http.routers.nexcore2_dashboard.priority=1
+      - traefik.http.routers.nexcore2_dashboard.tls=true
+      - traefik.http.routers.nexcore2_dashboard.tls.certresolver=letsencrypt
+      - traefik.http.routers.nexcore2_dashboard.service=nexcore2_dashboard
+      - traefik.http.services.nexcore2_dashboard.loadbalancer.server.port=8080
+      - traefik.http.services.nexcore2_dashboard.loadbalancer.passHostHeader=true
+      - 'traefik.http.routers.nexcore2_terminal.rule=Host(`nexcore2.kemsolucoes.com.br`) && PathPrefix(`/terminal`)'
+      - traefik.http.routers.nexcore2_terminal.entrypoints=https
+      - traefik.http.routers.nexcore2_terminal.priority=10
+      - traefik.http.routers.nexcore2_terminal.tls=true
+      - traefik.http.routers.nexcore2_terminal.tls.certresolver=letsencrypt
+      - traefik.http.routers.nexcore2_terminal.service=nexcore2_terminal
+      - traefik.http.routers.nexcore2_terminal.middlewares=nexcore2_terminal_strip
+      - traefik.http.middlewares.nexcore2_terminal_strip.stripprefix.prefixes=/terminal
+      - traefik.http.services.nexcore2_terminal.loadbalancer.server.port=32352
+      - traefik.http.services.nexcore2_terminal.loadbalancer.passHostHeader=true
 
-  evonexus2_social_auth:
+  nexcore2_social_auth:
     image: 'evoapicloud/evo-nexus-dashboard:latest'
-    container_name: evonexus2_social_auth
+    container_name: nexcore2_social_auth
     restart: unless-stopped
     command:
       - uv
@@ -83,9 +83,9 @@ services:
       - TZ=America/Sao_Paulo
       - SOCIAL_AUTH_PORT=8765
     volumes:
-      - 'evonexus2_workspace:/workspace/workspace'
-      - 'evonexus2_config:/workspace/config'
-      - 'evonexus2_claude_auth:/root/.claude'
+      - 'nexcore2_workspace:/workspace/workspace'
+      - 'nexcore2_config:/workspace/config'
+      - 'nexcore2_claude_auth:/root/.claude'
     networks:
       - coolify
     mem_limit: 512m
@@ -101,20 +101,20 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=coolify
-      - 'traefik.http.routers.evonexus2_social_auth.rule=Host(`nexcore2.kemsolucoes.com.br`) && PathPrefix(`/social-auth`)'
-      - traefik.http.routers.evonexus2_social_auth.entrypoints=https
-      - traefik.http.routers.evonexus2_social_auth.priority=20
-      - traefik.http.routers.evonexus2_social_auth.tls=true
-      - traefik.http.routers.evonexus2_social_auth.tls.certresolver=letsencrypt
-      - traefik.http.routers.evonexus2_social_auth.service=evonexus2_social_auth
-      - traefik.http.routers.evonexus2_social_auth.middlewares=evonexus2_social_auth_strip
-      - traefik.http.middlewares.evonexus2_social_auth_strip.stripprefix.prefixes=/social-auth
-      - traefik.http.services.evonexus2_social_auth.loadbalancer.server.port=8765
-      - traefik.http.services.evonexus2_social_auth.loadbalancer.passHostHeader=true
+      - 'traefik.http.routers.nexcore2_social_auth.rule=Host(`nexcore2.kemsolucoes.com.br`) && PathPrefix(`/social-auth`)'
+      - traefik.http.routers.nexcore2_social_auth.entrypoints=https
+      - traefik.http.routers.nexcore2_social_auth.priority=20
+      - traefik.http.routers.nexcore2_social_auth.tls=true
+      - traefik.http.routers.nexcore2_social_auth.tls.certresolver=letsencrypt
+      - traefik.http.routers.nexcore2_social_auth.service=nexcore2_social_auth
+      - traefik.http.routers.nexcore2_social_auth.middlewares=nexcore2_social_auth_strip
+      - traefik.http.middlewares.nexcore2_social_auth_strip.stripprefix.prefixes=/social-auth
+      - traefik.http.services.nexcore2_social_auth.loadbalancer.server.port=8765
+      - traefik.http.services.nexcore2_social_auth.loadbalancer.passHostHeader=true
 
-  evonexus2_telegram:
+  nexcore2_telegram:
     image: 'evoapicloud/evo-nexus-runtime:latest'
-    container_name: evonexus2_telegram
+    container_name: nexcore2_telegram
     restart: unless-stopped
     command:
       - claude
@@ -127,20 +127,20 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - 'evonexus2_config:/workspace/config'
-      - 'evonexus2_workspace:/workspace/workspace'
-      - 'evonexus2_memory:/workspace/memory'
-      - 'evonexus2_adw_logs:/workspace/ADWs/logs'
-      - 'evonexus2_adw_custom:/workspace/ADWs/routines/custom'
-      - 'evonexus2_agents_custom:/workspace/.claude/agents'
-      - 'evonexus2_skills_custom:/workspace/.claude/skills'
-      - 'evonexus2_commands_custom:/workspace/.claude/commands'
-      - 'evonexus2_templates:/workspace/.claude/templates'
-      - 'evonexus2_rules:/workspace/.claude/rules'
-      - 'evonexus2_hooks:/workspace/.claude/hooks'
-      - 'evonexus2_agent_memory:/workspace/.claude/agent-memory'
-      - 'evonexus2_claude_auth:/root/.claude'
-      - 'evonexus2_codex_auth:/root/.codex'
+      - 'nexcore2_config:/workspace/config'
+      - 'nexcore2_workspace:/workspace/workspace'
+      - 'nexcore2_memory:/workspace/memory'
+      - 'nexcore2_adw_logs:/workspace/ADWs/logs'
+      - 'nexcore2_adw_custom:/workspace/ADWs/routines/custom'
+      - 'nexcore2_agents_custom:/workspace/.claude/agents'
+      - 'nexcore2_skills_custom:/workspace/.claude/skills'
+      - 'nexcore2_commands_custom:/workspace/.claude/commands'
+      - 'nexcore2_templates:/workspace/.claude/templates'
+      - 'nexcore2_rules:/workspace/.claude/rules'
+      - 'nexcore2_hooks:/workspace/.claude/hooks'
+      - 'nexcore2_agent_memory:/workspace/.claude/agent-memory'
+      - 'nexcore2_claude_auth:/root/.claude'
+      - 'nexcore2_codex_auth:/root/.codex'
     networks:
       - coolify
     mem_limit: 4096m
@@ -154,9 +154,9 @@ services:
       retries: 3
       start_period: 60s
 
-  evonexus2_scheduler:
+  nexcore2_scheduler:
     image: 'evoapicloud/evo-nexus-runtime:latest'
-    container_name: evonexus2_scheduler
+    container_name: nexcore2_scheduler
     restart: on-failure
     command:
       - /bin/bash
@@ -165,20 +165,20 @@ services:
       - TZ=America/Sao_Paulo
       - CLAUDE_DANGEROUSLY_SKIP_PERMISSIONS=1
     volumes:
-      - 'evonexus2_config:/workspace/config'
-      - 'evonexus2_workspace:/workspace/workspace'
-      - 'evonexus2_memory:/workspace/memory'
-      - 'evonexus2_adw_logs:/workspace/ADWs/logs'
-      - 'evonexus2_adw_custom:/workspace/ADWs/routines/custom'
-      - 'evonexus2_agents_custom:/workspace/.claude/agents'
-      - 'evonexus2_skills_custom:/workspace/.claude/skills'
-      - 'evonexus2_commands_custom:/workspace/.claude/commands'
-      - 'evonexus2_templates:/workspace/.claude/templates'
-      - 'evonexus2_rules:/workspace/.claude/rules'
-      - 'evonexus2_hooks:/workspace/.claude/hooks'
-      - 'evonexus2_agent_memory:/workspace/.claude/agent-memory'
-      - 'evonexus2_codex_auth:/root/.codex'
-      - 'evonexus2_claude_auth:/root/.claude'
+      - 'nexcore2_config:/workspace/config'
+      - 'nexcore2_workspace:/workspace/workspace'
+      - 'nexcore2_memory:/workspace/memory'
+      - 'nexcore2_adw_logs:/workspace/ADWs/logs'
+      - 'nexcore2_adw_custom:/workspace/ADWs/routines/custom'
+      - 'nexcore2_agents_custom:/workspace/.claude/agents'
+      - 'nexcore2_skills_custom:/workspace/.claude/skills'
+      - 'nexcore2_commands_custom:/workspace/.claude/commands'
+      - 'nexcore2_templates:/workspace/.claude/templates'
+      - 'nexcore2_rules:/workspace/.claude/rules'
+      - 'nexcore2_hooks:/workspace/.claude/hooks'
+      - 'nexcore2_agent_memory:/workspace/.claude/agent-memory'
+      - 'nexcore2_codex_auth:/root/.codex'
+      - 'nexcore2_claude_auth:/root/.claude'
     networks:
       - coolify
     mem_limit: 4096m
@@ -193,22 +193,22 @@ services:
       start_period: 60s
 
 volumes:
-  evonexus2_config: null
-  evonexus2_workspace: null
-  evonexus2_dashboard_data: null
-  evonexus2_memory: null
-  evonexus2_adw_logs: null
-  evonexus2_adw_custom: null
-  evonexus2_agents_custom: null
-  evonexus2_skills_custom: null
-  evonexus2_commands_custom: null
-  evonexus2_templates: null
-  evonexus2_rules: null
-  evonexus2_hooks: null
-  evonexus2_agent_memory: null
-  evonexus2_claude_auth: null
-  evonexus2_codex_auth: null
-  evonexus2_terminal_sessions: null
+  nexcore2_config: null
+  nexcore2_workspace: null
+  nexcore2_dashboard_data: null
+  nexcore2_memory: null
+  nexcore2_adw_logs: null
+  nexcore2_adw_custom: null
+  nexcore2_agents_custom: null
+  nexcore2_skills_custom: null
+  nexcore2_commands_custom: null
+  nexcore2_templates: null
+  nexcore2_rules: null
+  nexcore2_hooks: null
+  nexcore2_agent_memory: null
+  nexcore2_claude_auth: null
+  nexcore2_codex_auth: null
+  nexcore2_terminal_sessions: null
 
 networks:
   coolify:
